@@ -6,7 +6,7 @@
  * Copyright 2013 Macthink.cn.
  * All rights reserved.
  */
-package cn.macthink.pagenes;
+package cn.macthink.pagenes.step2;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -15,6 +15,7 @@ import org.apache.mahout.math.Vector;
 import org.apache.mahout.math.Vector.Element;
 
 import cn.macthink.common.util.StatisticUtils;
+import cn.macthink.pagenes.model.Cluster;
 
 import com.google.common.base.Preconditions;
 

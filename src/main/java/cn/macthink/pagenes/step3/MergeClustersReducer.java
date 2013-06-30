@@ -18,7 +18,7 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.mahout.clustering.Cluster;
 import org.apache.mahout.clustering.iterator.ClusterWritable;
 
-import cn.macthink.pagenes.ClusterDistanceWritable;
+import cn.macthink.pagenes.model.ClusterDistanceWritable;
 import cn.macthink.pagenes.util.PAgenesConfigKeys;
 import cn.macthink.pagenes.util.partitionsort.PartitionSortKeyPair;
 

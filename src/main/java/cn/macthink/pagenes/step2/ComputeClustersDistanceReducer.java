@@ -20,8 +20,8 @@ import org.apache.mahout.clustering.iterator.ClusterWritable;
 import org.apache.mahout.common.ClassUtils;
 import org.apache.mahout.common.distance.DistanceMeasure;
 
-import cn.macthink.pagenes.ClusterDistance;
-import cn.macthink.pagenes.ClusterDistanceWritable;
+import cn.macthink.pagenes.model.ClusterDistance;
+import cn.macthink.pagenes.model.ClusterDistanceWritable;
 import cn.macthink.pagenes.util.PAgenesConfigKeys;
 import cn.macthink.pagenes.util.partitionsort.PartitionSortKeyPair;
 

@@ -6,7 +6,7 @@
  * Copyright 2013 Macthink.cn.
  * All rights reserved.
  */
-package cn.macthink.pagenes;
+package cn.macthink.pagenes.model;
 
 import org.apache.mahout.clustering.iterator.DistanceMeasureCluster;
 import org.apache.mahout.common.distance.DistanceMeasure;

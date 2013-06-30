@@ -15,8 +15,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.mahout.clustering.iterator.ClusterWritable;
 
-import cn.macthink.pagenes.Cluster;
-import cn.macthink.pagenes.PartitionPolicy;
+import cn.macthink.pagenes.model.Cluster;
 import cn.macthink.pagenes.util.PAgenesConfigKeys;
 
 /**

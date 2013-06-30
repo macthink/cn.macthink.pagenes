@@ -18,7 +18,7 @@ import org.apache.mahout.common.distance.CosineDistanceMeasure;
 import org.apache.mahout.math.Vector;
 import org.apache.mahout.math.VectorWritable;
 
-import cn.macthink.pagenes.Cluster;
+import cn.macthink.pagenes.model.Cluster;
 
 /**
  * GenerateInitClustersMapper
