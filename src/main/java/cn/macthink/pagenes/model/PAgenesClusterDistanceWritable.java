@@ -20,17 +20,17 @@ import org.apache.mahout.clustering.iterator.ClusterWritable;
  * 
  * @author Macthink
  */
-public class ClusterDistanceWritable implements WritableComparable<ClusterDistance> {
+public class PAgenesClusterDistanceWritable implements WritableComparable<PAgenesClusterDistance> {
 
 	/**
 	 * ClusterDistance
 	 */
-	private ClusterDistance clusterDistance;
+	private PAgenesClusterDistance clusterDistance;
 
 	/**
 	 * Constructor
 	 */
-	public ClusterDistanceWritable() {
+	public PAgenesClusterDistanceWritable() {
 		super();
 	}
 
@@ -39,7 +39,7 @@ public class ClusterDistanceWritable implements WritableComparable<ClusterDistan
 	 * 
 	 * @param clusterDistance
 	 */
-	public ClusterDistanceWritable(ClusterDistance clusterDistance) {
+	public PAgenesClusterDistanceWritable(PAgenesClusterDistance clusterDistance) {
 		super();
 		this.clusterDistance = clusterDistance;
 	}
@@ -47,7 +47,7 @@ public class ClusterDistanceWritable implements WritableComparable<ClusterDistan
 	/**
 	 * @return the clusterDistance
 	 */
-	public ClusterDistance get() {
+	public PAgenesClusterDistance get() {
 		return clusterDistance;
 	}
 
@@ -55,7 +55,7 @@ public class ClusterDistanceWritable implements WritableComparable<ClusterDistan
 	 * @param clusterDistance
 	 *            the clusterDistance to set
 	 */
-	public void set(ClusterDistance clusterDistance) {
+	public void set(PAgenesClusterDistance clusterDistance) {
 		this.clusterDistance = clusterDistance;
 	}
 
@@ -72,18 +72,18 @@ public class ClusterDistanceWritable implements WritableComparable<ClusterDistan
 
 	@Override
 	public void readFields(DataInput in) throws IOException {
-		clusterDistance = new ClusterDistance();
+		clusterDistance = new PAgenesClusterDistance();
 		clusterDistance.setDistance(in.readDouble());
 		ClusterWritable clusterWritable = new ClusterWritable();
 		clusterWritable.readFields(in);
-		clusterDistance.setSource(clusterWritable.getValue());
+		clusterDistance.setSource((PAgenesCluster) clusterWritable.getValue());
 		clusterWritable = new ClusterWritable();
 		clusterWritable.readFields(in);
-		clusterDistance.setTarget(clusterWritable.getValue());
+		clusterDistance.setTarget((PAgenesCluster) clusterWritable.getValue());
 	}
 
 	@Override
-	public int compareTo(ClusterDistance o) {
+	public int compareTo(PAgenesClusterDistance o) {
 		return clusterDistance.compareTo(o);
 	}
 
@@ -94,8 +94,8 @@ public class ClusterDistanceWritable implements WritableComparable<ClusterDistan
 
 	@Override
 	public boolean equals(Object obj) {
-		return (obj instanceof ClusterDistanceWritable)
-				&& clusterDistance.equals(((ClusterDistanceWritable) obj).get());
+		return (obj instanceof PAgenesClusterDistanceWritable)
+				&& clusterDistance.equals(((PAgenesClusterDistanceWritable) obj).get());
 	}
 
 	@Override

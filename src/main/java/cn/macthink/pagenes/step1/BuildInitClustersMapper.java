@@ -15,10 +15,10 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.mahout.clustering.iterator.ClusterWritable;
 import org.apache.mahout.common.distance.CosineDistanceMeasure;
-import org.apache.mahout.math.Vector;
+import org.apache.mahout.math.NamedVector;
 import org.apache.mahout.math.VectorWritable;
 
-import cn.macthink.pagenes.model.Cluster;
+import cn.macthink.pagenes.model.PAgenesCluster;
 
 /**
  * GenerateInitClustersMapper
@@ -62,8 +62,8 @@ public class BuildInitClustersMapper extends Mapper<Text, VectorWritable, NullWr
 	 */
 	@Override
 	protected void map(Text key, VectorWritable value, Context context) throws IOException, InterruptedException {
-		Vector vector = value.get();
-		Cluster cluster = new Cluster(vector, ++clusterId, new CosineDistanceMeasure());
+		NamedVector vector = (NamedVector) value.get();
+		PAgenesCluster cluster = new PAgenesCluster(vector, ++clusterId, new CosineDistanceMeasure());
 		clusterWritable.setValue(cluster);
 		context.write(NullWritable.get(), clusterWritable);
 	}

@@ -15,7 +15,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.mahout.clustering.iterator.ClusterWritable;
 
-import cn.macthink.pagenes.model.Cluster;
+import cn.macthink.pagenes.model.PAgenesCluster;
 import cn.macthink.pagenes.util.PAgenesConfigKeys;
 
 /**
@@ -30,7 +30,7 @@ public class PartitionMapper extends Mapper<NullWritable, ClusterWritable, IntWr
 
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
-		processorNum = context.getConfiguration().getInt(PAgenesConfigKeys.PROCESSOR_NUM_KEY, 1);
+		processorNum = context.getConfiguration().getInt(PAgenesConfigKeys.PROCESSOR_NUM_KEY, 2);
 	}
 
 	/**
@@ -39,7 +39,7 @@ public class PartitionMapper extends Mapper<NullWritable, ClusterWritable, IntWr
 	@Override
 	protected void map(NullWritable key, ClusterWritable value, Context context) throws IOException,
 			InterruptedException {
-		Cluster cluster = (Cluster) value.getValue();
+		PAgenesCluster cluster = (PAgenesCluster) value.getValue();
 		context.write(new IntWritable(PartitionPolicy.getPartitionNum(cluster, processorNum)), value);
 	}
 }

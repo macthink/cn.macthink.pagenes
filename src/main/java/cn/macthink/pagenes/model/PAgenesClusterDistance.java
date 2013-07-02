@@ -8,24 +8,22 @@
  */
 package cn.macthink.pagenes.model;
 
-import org.apache.mahout.clustering.Cluster;
-
 /**
  * CategoriesDistance
  * 
  * @author Macthink
  */
-public class ClusterDistance implements Comparable<ClusterDistance> {
+public class PAgenesClusterDistance implements Comparable<PAgenesClusterDistance> {
 
 	/**
 	 * 源
 	 */
-	private Cluster source;
+	private PAgenesCluster source;
 
 	/**
 	 * 目标
 	 */
-	private Cluster target;
+	private PAgenesCluster target;
 
 	/**
 	 * 它们间的距离
@@ -35,7 +33,7 @@ public class ClusterDistance implements Comparable<ClusterDistance> {
 	/**
 	 * 构造函数
 	 */
-	public ClusterDistance() {
+	public PAgenesClusterDistance() {
 		super();
 	}
 
@@ -46,7 +44,7 @@ public class ClusterDistance implements Comparable<ClusterDistance> {
 	 * @param target
 	 * @param distance
 	 */
-	public ClusterDistance(Cluster source, Cluster target, double distance) {
+	public PAgenesClusterDistance(PAgenesCluster source, PAgenesCluster target, double distance) {
 		super();
 		this.source = source;
 		this.target = target;
@@ -54,7 +52,7 @@ public class ClusterDistance implements Comparable<ClusterDistance> {
 	}
 
 	@Override
-	public int compareTo(ClusterDistance o) {
+	public int compareTo(PAgenesClusterDistance o) {
 		return Double.compare(this.distance, o.distance);
 	}
 
@@ -66,15 +64,31 @@ public class ClusterDistance implements Comparable<ClusterDistance> {
 	/**
 	 * @return the source
 	 */
-	public Cluster getSource() {
+	public PAgenesCluster getSource() {
 		return source;
+	}
+
+	/**
+	 * @param source
+	 *            the source to set
+	 */
+	public void setSource(PAgenesCluster source) {
+		this.source = source;
 	}
 
 	/**
 	 * @return the target
 	 */
-	public Cluster getTarget() {
+	public PAgenesCluster getTarget() {
 		return target;
+	}
+
+	/**
+	 * @param target
+	 *            the target to set
+	 */
+	public void setTarget(PAgenesCluster target) {
+		this.target = target;
 	}
 
 	/**
@@ -82,22 +96,6 @@ public class ClusterDistance implements Comparable<ClusterDistance> {
 	 */
 	public double getDistance() {
 		return distance;
-	}
-
-	/**
-	 * @param source
-	 *            the source to set
-	 */
-	public void setSource(Cluster source) {
-		this.source = source;
-	}
-
-	/**
-	 * @param target
-	 *            the target to set
-	 */
-	public void setTarget(Cluster target) {
-		this.target = target;
 	}
 
 	/**

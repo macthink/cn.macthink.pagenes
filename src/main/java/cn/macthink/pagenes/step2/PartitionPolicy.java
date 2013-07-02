@@ -15,7 +15,7 @@ import org.apache.mahout.math.Vector;
 import org.apache.mahout.math.Vector.Element;
 
 import cn.macthink.common.util.StatisticUtils;
-import cn.macthink.pagenes.model.Cluster;
+import cn.macthink.pagenes.model.PAgenesCluster;
 
 import com.google.common.base.Preconditions;
 
@@ -33,7 +33,7 @@ public class PartitionPolicy {
 	 * @param processorNum
 	 * @return
 	 */
-	public static int getPartitionNum(Cluster cluster, int processorNum) {
+	public static int getPartitionNum(PAgenesCluster cluster, int processorNum) {
 
 		Preconditions.checkNotNull(cluster);
 
@@ -44,12 +44,12 @@ public class PartitionPolicy {
 		int blockNum = processorNum; // 块数
 		int dimensionOfBlock = centroid.size() / processorNum; // 每个块中的维数，最后一块可能比较小
 		double[][] blocks = new double[blockNum][dimensionOfBlock];
-		int pointer = 0;
 		double[] eigenvalues = new double[centroid.size()];
 		Iterator<Element> iterable = centroid.iterator();
 		for (int i = 0; iterable.hasNext(); i++) {
 			eigenvalues[i] = iterable.next().get();
 		}
+		int pointer = 0;
 		for (int i = 0; i < blockNum; i++) {
 			blocks[i] = Arrays.copyOfRange(eigenvalues, pointer, pointer + dimensionOfBlock);
 			pointer += dimensionOfBlock;

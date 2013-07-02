@@ -15,10 +15,10 @@ import java.util.Set;
 
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.mahout.clustering.Cluster;
 import org.apache.mahout.clustering.iterator.ClusterWritable;
 
-import cn.macthink.pagenes.model.ClusterDistanceWritable;
+import cn.macthink.pagenes.model.PAgenesCluster;
+import cn.macthink.pagenes.model.PAgenesClusterDistanceWritable;
 import cn.macthink.pagenes.util.PAgenesConfigKeys;
 import cn.macthink.pagenes.util.partitionsort.PartitionSortKeyPair;
 
@@ -28,26 +28,27 @@ import cn.macthink.pagenes.util.partitionsort.PartitionSortKeyPair;
  * @author Macthink
  */
 public class MergeClustersReducer extends
-		Reducer<PartitionSortKeyPair, ClusterDistanceWritable, NullWritable, ClusterWritable> {
+		Reducer<PartitionSortKeyPair, PAgenesClusterDistanceWritable, NullWritable, ClusterWritable> {
 
 	/**
 	 * 类别间距离阈值
 	 */
-	private double threshold;
+	private double distanceThreshold;
 
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
-		threshold = Double.parseDouble(context.getConfiguration().get(PAgenesConfigKeys.DISTANCE_THRESHOLD_KEY));
+		distanceThreshold = Double
+				.parseDouble(context.getConfiguration().get(PAgenesConfigKeys.DISTANCE_THRESHOLD_KEY));
 	}
 
 	@Override
-	protected void reduce(PartitionSortKeyPair key, Iterable<ClusterDistanceWritable> values, Context context)
+	protected void reduce(PartitionSortKeyPair key, Iterable<PAgenesClusterDistanceWritable> values, Context context)
 			throws IOException, InterruptedException {
 		// 从小到大遍历，如果小于距离阈值则合并类别
-		Set<String> processedSet = new HashSet<String>();
-		Iterator<ClusterDistanceWritable> iterator = values.iterator();
+		Set<Integer> processedSet = new HashSet<Integer>();
+		Iterator<PAgenesClusterDistanceWritable> iterator = values.iterator();
 		while (iterator.hasNext()) {
-			ClusterDistanceWritable clusterDistanceWritable = iterator.next();
+			PAgenesClusterDistanceWritable clusterDistanceWritable = iterator.next();
 			// 判断是否与其他类别合并过
 			if (processedSet.contains(clusterDistanceWritable.get().getSource().getId())) {
 				continue;
@@ -58,17 +59,20 @@ public class MergeClustersReducer extends
 
 			// 尚未与其他类别合并过
 			double distance = clusterDistanceWritable.get().getDistance();
-			Cluster newCluster = new Cluster(clusterDistanceWritable.get().getSource());
+			PAgenesCluster newCluster = new PAgenesCluster((PAgenesCluster) clusterDistanceWritable.get().getSource());
 			if (distance >= 0.0d && distance < distanceThreshold) {
 				// 合并类别
-				newCluster.combineSamplePoints(clusterDistanceWritable.get().getTarget());
-				ClusterWritable clusterWritable = new ClusterWritable(newCluster);
+				newCluster.combine((PAgenesCluster) clusterDistanceWritable.get().getTarget());
+
+				ClusterWritable clusterWritable = new ClusterWritable();
+				clusterWritable.setValue(newCluster);
 				context.write(NullWritable.get(), clusterWritable);
 
 				// 另一类别也标识为已处理
 				processedSet.add(clusterDistanceWritable.get().getTarget().getId());
 			} else {
-				ClusterWritable clusterWritable = new ClusterWritable(newCluster);
+				ClusterWritable clusterWritable = new ClusterWritable();
+				clusterWritable.setValue(newCluster);
 				context.write(NullWritable.get(), clusterWritable);
 			}
 		}
