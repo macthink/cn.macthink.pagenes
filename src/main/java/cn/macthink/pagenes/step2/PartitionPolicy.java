@@ -27,7 +27,7 @@ import com.google.common.base.Preconditions;
 public class PartitionPolicy {
 
 	/**
-	 * 获得某个给定簇将被划分的分区编号
+	 * getPartitionNum:获得某个给定簇将被划分的分区编号
 	 * 
 	 * @param cluster
 	 * @param processorNum

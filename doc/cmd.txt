@@ -1,0 +1,12 @@
+﻿hadoop dfsadmin -safemode leave
+
+put "D:\Develop\github\macthink\cn.macthink.pagenes\target\pagenes-0.0.1.jar"
+
+hadoop jar ~/pagenes-0.0.1.jar cn.macthink.pagenes.PAgenesDriver \
+--input /tancorp_text_seq_vector/tfidf-vectors \
+--output /tancorp_pagenes_output \
+--distanceMeasure org.apache.mahout.common.distance.CosineDistanceMeasure \
+--threshold 0.8 \
+--maxIter 1 \
+--overwrite \
+--processorNum 2

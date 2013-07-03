@@ -8,9 +8,12 @@
  */
 package cn.macthink.pagenes.model;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.Collection;
 
-import org.apache.mahout.clustering.iterator.DistanceMeasureCluster;
+import org.apache.mahout.clustering.DistanceMeasureCluster;
 import org.apache.mahout.common.distance.DistanceMeasure;
 import org.apache.mahout.math.NamedVector;
 
@@ -26,11 +29,9 @@ public class PAgenesCluster extends DistanceMeasureCluster {
 	private Collection<String> vectorNames;
 
 	/**
-	 * Constructor
+	 * Constructor: for (de)serialization as a Writable
 	 */
 	public PAgenesCluster() {
-		super();
-		vectorNames = Lists.newArrayList();
 	}
 
 	/**
@@ -52,7 +53,10 @@ public class PAgenesCluster extends DistanceMeasureCluster {
 	 * @param other
 	 */
 	public PAgenesCluster(PAgenesCluster other) {
-		this();
+		setNumPoints(other.getNumPoints());
+		setCenter(other.getCenter());
+		setRadius(other.getRadius());
+		setMeasure(other.getMeasure());
 		setId(other.getId());
 		setVectorNames(other.vectorNames);
 	}
@@ -92,6 +96,43 @@ public class PAgenesCluster extends DistanceMeasureCluster {
 	 */
 	public void setVectorNames(Collection<String> vectorNames) {
 		this.vectorNames = vectorNames;
+	}
+
+	/**
+	 * readFields
+	 * 
+	 * @see org.apache.mahout.clustering.DistanceMeasureCluster#readFields(java.io.DataInput)
+	 * @param in
+	 * @throws IOException
+	 */
+	@Override
+	public void readFields(DataInput in) throws IOException {
+		super.readFields(in);
+		vectorNames = Lists.newArrayList();
+		int vectorNameSize = in.readInt();
+		for (int i = 0; i < vectorNameSize; i++) {
+			vectorNames.add(in.readUTF());
+		}
+	}
+
+	/**
+	 * write
+	 * 
+	 * @see org.apache.mahout.clustering.DistanceMeasureCluster#write(java.io.DataOutput)
+	 * @param out
+	 * @throws IOException
+	 */
+	@Override
+	public void write(DataOutput out) throws IOException {
+		super.write(out);
+		int vectorNamesSize = 0;
+		out.writeInt(vectorNamesSize);
+		if (vectorNames != null && vectorNames.size() != 0) {
+			vectorNamesSize = vectorNames.size();
+			for (String vectorName : vectorNames) {
+				out.writeUTF(vectorName);
+			}
+		}
 	}
 
 }

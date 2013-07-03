@@ -13,7 +13,6 @@ import java.io.IOException;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.mahout.clustering.iterator.ClusterWritable;
 
 import cn.macthink.pagenes.model.PAgenesCluster;
 import cn.macthink.pagenes.util.PAgenesConfigKeys;
@@ -23,23 +22,39 @@ import cn.macthink.pagenes.util.PAgenesConfigKeys;
  * 
  * @author Macthink
  */
-public class PartitionMapper extends Mapper<NullWritable, ClusterWritable, IntWritable, ClusterWritable> {
+public class PartitionMapper extends Mapper<NullWritable, PAgenesCluster, IntWritable, PAgenesCluster> {
 
-	// 将使用的处理机数目（处理机即Mapper or Reducer）
+	/**
+	 * 将使用的处理机数目（处理机即Mapper or Reducer）
+	 */
 	private int processorNum;
 
+	/**
+	 * setup
+	 * 
+	 * @see org.apache.hadoop.mapreduce.Mapper#setup(org.apache.hadoop.mapreduce.Mapper.Context)
+	 * @param context
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
 		processorNum = context.getConfiguration().getInt(PAgenesConfigKeys.PROCESSOR_NUM_KEY, 2);
 	}
 
 	/**
-	 * 计算输入的簇应该划分到哪一个处理机中去
+	 * map:计算输入的簇应该划分到哪一个处理机中去
+	 * 
+	 * @see org.apache.hadoop.mapreduce.Mapper#map(KEYIN, VALUEIN, org.apache.hadoop.mapreduce.Mapper.Context)
+	 * @param key
+	 * @param value
+	 * @param context
+	 * @throws IOException
+	 * @throws InterruptedException
 	 */
 	@Override
-	protected void map(NullWritable key, ClusterWritable value, Context context) throws IOException,
+	protected void map(NullWritable key, PAgenesCluster value, Context context) throws IOException,
 			InterruptedException {
-		PAgenesCluster cluster = (PAgenesCluster) value.getValue();
-		context.write(new IntWritable(PartitionPolicy.getPartitionNum(cluster, processorNum)), value);
+		context.write(new IntWritable(PartitionPolicy.getPartitionNum(value, processorNum)), value);
 	}
 }
