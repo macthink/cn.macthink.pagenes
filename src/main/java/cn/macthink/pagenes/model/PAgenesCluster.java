@@ -14,8 +14,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.UUID;
 
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.hadoop.io.Writable;
 import org.apache.mahout.math.NamedVector;
 import org.apache.mahout.math.Vector;
@@ -151,12 +149,14 @@ public class PAgenesCluster implements Writable {
 		VectorWritable.writeVector(out, pointSum);
 		VectorWritable.writeVector(out, center);
 		long numPoints = 0;
-		out.writeLong(numPoints);
 		if (points != null && points.size() != 0) {
 			numPoints = points.size();
+			out.writeLong(numPoints);
 			for (NamedVector vector : points) {
 				VectorWritable.writeVector(out, vector);
 			}
+		} else {
+			out.writeLong(numPoints);
 		}
 	}
 
@@ -168,7 +168,10 @@ public class PAgenesCluster implements Writable {
 	 */
 	@Override
 	public String toString() {
-		return ReflectionToStringBuilder.toString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+		StringBuffer strBuffer = new StringBuffer();
+		strBuffer.append(points.size());
+		return strBuffer.toString();
+		// ReflectionToStringBuilder.toString(this, ToStringStyle.SHORT_PREFIX_STYLE);
 	}
 
 	/**

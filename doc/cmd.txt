@@ -21,7 +21,7 @@ hadoop jar ~/pagenes-0.0.1.jar cn.macthink.pagenes.PAgenesDriver \
 --threshold 0.8 \
 --maxIter 1 \
 --overwrite \
---processorNum 2
+--processorNum 4
 
 mahout kmeans \
 --input /tancorp_text_seq_vector/tfidf-vectors \

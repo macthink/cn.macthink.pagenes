@@ -136,6 +136,8 @@ public class PAgenesDriver extends AbstractJob {
 			log.info("threshold: {} max Iterations: {} ", new Object[] { threshold, maxIterations });
 		}
 
+		long start = System.currentTimeMillis();
+
 		log.info("Step1: Build Init Cluster");
 		Path output1 = new Path(output, "1.init-clusters");
 		buildInitCluster(conf, input, output1, measure.getClass().getName());
@@ -147,6 +149,11 @@ public class PAgenesDriver extends AbstractJob {
 		log.info("Step3: Merge Clusters");
 		Path output3 = new Path(output, "3.merge-clusters");
 		mergeClusters(conf, output2, output3, threshold, processorNum);
+
+		if (log.isInfoEnabled()) {
+			log.info("Program took {} ms (Minutes: {})", System.currentTimeMillis() - start,
+					(System.currentTimeMillis() - start) / 60000.0);
+		}
 	}
 
 	/**
@@ -217,7 +224,7 @@ public class PAgenesDriver extends AbstractJob {
 		FileOutputFormat.setOutputPath(job, output);
 
 		if (!job.waitForCompletion(true)) {
-			throw new InterruptedException("buildInitCluster failed");
+			throw new InterruptedException("partitionComputeClustersDistance failed");
 		}
 	}
 
