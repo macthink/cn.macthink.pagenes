@@ -63,7 +63,7 @@ public class PAgenesClusterDistance implements WritableComparable<PAgenesCluster
 
 	@Override
 	public String toString() {
-		return "CategoriesDistance [ " + source.getId() + "\t" + target.getId() + "\t" + distance + "]";
+		return "PAgenesClusterDistance [ " + source.getId() + "\t" + target.getId() + "\t" + distance + "]";
 	}
 
 	/**

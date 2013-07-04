@@ -135,4 +135,16 @@ public class PAgenesCluster extends DistanceMeasureCluster {
 		}
 	}
 
+	/**
+	 * toString
+	 * 
+	 * @see java.lang.Object#toString()
+	 * @return
+	 */
+	@Override
+	public String toString() {
+		StringBuilder buf = new StringBuilder();
+		buf.append(vectorNames.size());
+		return buf.toString();
+	}
 }
