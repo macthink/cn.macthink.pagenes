@@ -161,7 +161,6 @@ public class PAgenesDriver extends AbstractJob {
 	 */
 	public static void buildInitCluster(Configuration conf, Path input, Path output, String measureClass)
 			throws IOException, ClassNotFoundException, InterruptedException {
-		conf.set(PAgenesConfigKeys.DISTANCE_MEASURE_KEY, measureClass);
 
 		Job job = new Job(conf, "buildInitCluster");
 		job.setInputFormatClass(SequenceFileInputFormat.class);

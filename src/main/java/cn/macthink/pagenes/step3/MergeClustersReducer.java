@@ -44,7 +44,7 @@ public class MergeClustersReducer extends
 	protected void reduce(PartitionSortKeyPair key, Iterable<PAgenesClusterDistance> values, Context context)
 			throws IOException, InterruptedException {
 		// 从小到大遍历，如果小于距离阈值则合并类别
-		Set<Integer> processedSet = new HashSet<Integer>();
+		Set<String> processedSet = new HashSet<String>();
 		Iterator<PAgenesClusterDistance> iterator = values.iterator();
 		while (iterator.hasNext()) {
 			PAgenesClusterDistance clusterDistance = iterator.next();

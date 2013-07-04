@@ -2,6 +2,18 @@
 
 put "D:\Develop\github\macthink\cn.macthink.pagenes\target\pagenes-0.0.1.jar"
 
+mahout seqdumper \
+--seqFile /tancorp_text_seq_vector/tfidf-vectors/part-r-00000 \
+--numItems 2
+
+mahout seqdumper \
+--seqFile /tancorp_kmeans_output/clusters-1-final/part-r-00000 \
+--numItems 1
+
+mahout seqdumper \
+--seqFile /tancorp_pagenes_output/1.init-clusters/part-m-00000 \
+--numItems 2
+
 hadoop jar ~/pagenes-0.0.1.jar cn.macthink.pagenes.PAgenesDriver \
 --input /tancorp_text_seq_vector/tfidf-vectors \
 --output /tancorp_pagenes_output \
@@ -10,3 +22,18 @@ hadoop jar ~/pagenes-0.0.1.jar cn.macthink.pagenes.PAgenesDriver \
 --maxIter 1 \
 --overwrite \
 --processorNum 2
+
+mahout kmeans \
+--input /tancorp_text_seq_vector/tfidf-vectors \
+--output /tancorp_kmeans_output \
+--clusters clusters-0 \
+--distanceMeasure org.apache.mahout.common.distance.CosineDistanceMeasure \
+--clustering \
+--overwrite \
+--numClusters 12 \
+--maxIter 1
+
+mahout clusterdump \
+--seqFileDir /tancorp_kmeans_output/clusters-1-final \
+--pointsDir /tancorp_kmeans_output/clusteredPoints \
+--output tancorp_kmeans_output_clusters_1_final.txt

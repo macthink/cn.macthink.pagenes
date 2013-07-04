@@ -11,46 +11,20 @@ package cn.macthink.pagenes.step1;
 import java.io.IOException;
 
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.mahout.common.ClassUtils;
-import org.apache.mahout.common.distance.DistanceMeasure;
 import org.apache.mahout.math.NamedVector;
 import org.apache.mahout.math.VectorWritable;
 
 import cn.macthink.pagenes.model.PAgenesCluster;
-import cn.macthink.pagenes.util.PAgenesConfigKeys;
 
 /**
  * GenerateInitClustersMapper
  * 
  * @author Macthink
  */
-public class BuildInitClustersMapper extends Mapper<Text, VectorWritable, NullWritable, PAgenesCluster> {
-
-	/**
-	 * clusterId
-	 */
-	private static int clusterId = 0;
-
-	/**
-	 * 距离度量
-	 */
-	private DistanceMeasure distanceMeasure;
-
-	/**
-	 * setup
-	 * 
-	 * @see org.apache.hadoop.mapreduce.Mapper#setup(org.apache.hadoop.mapreduce.Mapper.Context)
-	 * @param context
-	 * @throws IOException
-	 * @throws InterruptedException
-	 */
-	@Override
-	protected void setup(Context context) throws IOException, InterruptedException {
-		distanceMeasure = ClassUtils.instantiateAs(
-				context.getConfiguration().get(PAgenesConfigKeys.DISTANCE_MEASURE_KEY), DistanceMeasure.class);
-	}
+public class BuildInitClustersMapper extends
+		Mapper<WritableComparable<?>, VectorWritable, NullWritable, PAgenesCluster> {
 
 	/**
 	 * map
@@ -63,9 +37,10 @@ public class BuildInitClustersMapper extends Mapper<Text, VectorWritable, NullWr
 	 * @throws InterruptedException
 	 */
 	@Override
-	protected void map(Text key, VectorWritable value, Context context) throws IOException, InterruptedException {
-		NamedVector vector = (NamedVector) value.get();
-		PAgenesCluster cluster = new PAgenesCluster(vector, ++clusterId, distanceMeasure);
+	protected void map(WritableComparable<?> key, VectorWritable value, Context context) throws IOException,
+			InterruptedException {
+		NamedVector point = (NamedVector) value.get();
+		PAgenesCluster cluster = new PAgenesCluster(point);
 		context.write(NullWritable.get(), cluster);
 	}
 
