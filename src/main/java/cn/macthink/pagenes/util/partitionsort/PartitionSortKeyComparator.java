@@ -25,7 +25,7 @@ public class PartitionSortKeyComparator extends WritableComparator {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public int compare(WritableComparable a, WritableComparable b) {
-		return ((PartitionSortKeyPair) a).getSortKey().compareTo(((PartitionSortKeyPair) b).getSortKey());
+		return ((PartitionSortKeyPair) a).getPartitionKey().compareTo(((PartitionSortKeyPair) b).getPartitionKey());
 	}
 
 }

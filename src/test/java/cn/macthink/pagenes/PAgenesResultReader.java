@@ -34,11 +34,7 @@ public class PAgenesResultReader {
 	 */
 	public static void main(String[] args) throws IOException {
 		String basePath = Class.class.getClass().getResource("/").toString().replaceAll("file:/", "");
-		// String seqFile1 = basePath + "1.init-clusters/part-m-00003";
-		// String seqFile2 = basePath + "3.merge-clusters/part-r-00003";
-		String seqFile3 = basePath + "3.merge-clusters/part-r-00001";
-
-		String seqFile = seqFile3;
+		String seqFile = basePath + "clusters/part-r-00003";
 		Configuration conf = new Configuration();
 		conf.set("mapred.job.tracker", "local");
 		conf.set("fs.default.name", "file:///");

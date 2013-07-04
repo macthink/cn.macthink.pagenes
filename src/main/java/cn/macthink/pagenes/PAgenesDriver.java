@@ -13,6 +13,8 @@ import java.io.IOException;
 import org.apache.commons.cli2.builder.ArgumentBuilder;
 import org.apache.commons.cli2.builder.DefaultOptionBuilder;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
@@ -28,6 +30,8 @@ import org.apache.mahout.common.HadoopUtil;
 import org.apache.mahout.common.commandline.DefaultOptionCreator;
 import org.apache.mahout.common.distance.CosineDistanceMeasure;
 import org.apache.mahout.common.distance.DistanceMeasure;
+import org.apache.mahout.common.iterator.sequencefile.PathFilters;
+import org.apache.mahout.common.iterator.sequencefile.SequenceFileValueIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +44,9 @@ import cn.macthink.pagenes.step3.MergeClustersReducer;
 import cn.macthink.pagenes.util.PAgenesConfigKeys;
 import cn.macthink.pagenes.util.mapper.IdentityMapper;
 import cn.macthink.pagenes.util.partitioner.KeyPartitioner;
+import cn.macthink.pagenes.util.partitionsort.PartitionSortKeyComparator;
 import cn.macthink.pagenes.util.partitionsort.PartitionSortKeyPair;
+import cn.macthink.pagenes.util.partitionsort.PartitionSortKeyPairComparator;
 import cn.macthink.pagenes.util.partitionsort.PartitionSortKeyPairPartitioner;
 
 /**
@@ -116,44 +122,65 @@ public class PAgenesDriver extends AbstractJob {
 	 * 
 	 * @param conf
 	 * @param input
-	 *            the directory pathname for input points
 	 * @param output
-	 *            the directory pathname for output points
 	 * @param measure
-	 *            the DistanceMeasure to use
 	 * @param threshold
-	 *            the threshold distance of clusters
 	 * @param maxIterations
-	 *            the maximum number of iterations
-	 * @throws InterruptedException
-	 * @throws IOException
+	 * @param processorNum
 	 * @throws ClassNotFoundException
+	 * @throws IOException
+	 * @throws InterruptedException
 	 */
 	public static void run(Configuration conf, Path input, Path output, DistanceMeasure measure, double threshold,
 			int maxIterations, int processorNum) throws ClassNotFoundException, IOException, InterruptedException {
 		if (log.isInfoEnabled()) {
-			log.info("Input: {} Out: {} Distance: {}", new Object[] { input, output, measure.getClass().getName() });
-			log.info("threshold: {} max Iterations: {} ", new Object[] { threshold, maxIterations });
+			log.info("Input: {}", input);
+			log.info("Out: {}", output);
+			log.info("Distance: {}", measure.getClass().getName());
+			log.info("Threshold: {}", threshold);
+			log.info("Iterations: {} ", maxIterations);
+			log.info("ProcessNum: {} ", processorNum);
 		}
-
+		// start counter
 		long start = System.currentTimeMillis();
 
+		// build init cluster
 		log.info("Step1: Build Init Cluster");
-		Path output1 = new Path(output, "1.init-clusters");
-		buildInitCluster(conf, input, output1, measure.getClass().getName());
+		Path clustersIn = new Path(output, "init-clusters");
+		buildInitCluster(conf, input, clustersIn, measure.getClass().getName());
 
-		log.info("Step2: Partition & Compute Clusters Distance");
-		Path output2 = new Path(output, "2.clusters-distance");
-		partitionComputeClustersDistance(conf, output1, output2, measure.getClass().getName(), processorNum);
+		// start iteration
+		int iteration = 1;
+		boolean converged = false;
+		for (; !converged && iteration <= maxIterations; iteration++) {
+			Path lastIterationPath = new Path(output, "iteration" + (iteration - 1));
+			Path iterationPath = new Path(output, "iteration" + iteration);
 
-		log.info("Step3: Merge Clusters");
-		Path output3 = new Path(output, "3.merge-clusters");
-		mergeClusters(conf, output2, output3, threshold, processorNum);
+			log.info("Iteration:{}, Step2: Partition & Compute Clusters Distance", iteration);
+			Path clustersDistance = new Path(iterationPath, "clusters-distance");
+			partitionComputeClustersDistance(conf, clustersIn, clustersDistance, measure.getClass().getName(),
+					processorNum);
 
+			log.info("Iteration:{}, Step3: Merge Clusters", iteration);
+			Path clustersOut = new Path(iterationPath, "clusters");
+			Path lastIterationClustersOut = new Path(lastIterationPath, "merge-clusters");
+			converged = mergeClusters(conf, clustersDistance, clustersOut, lastIterationClustersOut, threshold,
+					processorNum);
+			clustersIn = clustersOut;
+
+			FileSystem fs = FileSystem.get(clustersOut.toUri(), conf);
+			long numClusters = countClustesNum(clustersOut, conf, fs);
+			log.info("Number of clusters: {}", numClusters);
+		}
 		if (log.isInfoEnabled()) {
 			log.info("Program took {} ms (Minutes: {})", System.currentTimeMillis() - start,
 					(System.currentTimeMillis() - start) / 60000.0);
 		}
+
+		Path finalClustersIn = new Path(output, "iteration" + (iteration - 1) + "-final");
+		FileSystem.get(conf).rename(new Path(output, "iteration" + (iteration - 1)), finalClustersIn);
+
+		// print the result
 	}
 
 	/**
@@ -189,7 +216,7 @@ public class PAgenesDriver extends AbstractJob {
 	}
 
 	/**
-	 * partitionComputeClustersDistance
+	 * Step2:partitionComputeClustersDistance
 	 * 
 	 * @param conf
 	 * @param input
@@ -229,19 +256,21 @@ public class PAgenesDriver extends AbstractJob {
 	}
 
 	/**
-	 * mergeClusters
+	 * Step3:mergeClusters
 	 * 
 	 * @param conf
 	 * @param input
 	 * @param output
+	 * @param lastOutput
 	 * @param threshold
 	 * @param processorNum
+	 * @return
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 * @throws InterruptedException
 	 */
-	public static void mergeClusters(Configuration conf, Path input, Path output, double threshold, int processorNum)
-			throws IOException, ClassNotFoundException, InterruptedException {
+	public static boolean mergeClusters(Configuration conf, Path input, Path output, Path lastOutput, double threshold,
+			int processorNum) throws IOException, ClassNotFoundException, InterruptedException {
 		conf.set(PAgenesConfigKeys.DISTANCE_THRESHOLD_KEY, Double.toString(threshold));
 
 		Job job = new Job(conf, "mergeClusters");
@@ -256,6 +285,10 @@ public class PAgenesDriver extends AbstractJob {
 		job.setPartitionerClass(PartitionSortKeyPairPartitioner.class);
 		job.setReducerClass(MergeClustersReducer.class);
 
+		// secondary sort
+		job.setSortComparatorClass(PartitionSortKeyPairComparator.class);
+		job.setGroupingComparatorClass(PartitionSortKeyComparator.class);
+
 		job.setNumReduceTasks(processorNum);
 		job.setJarByClass(PAgenesDriver.class);
 
@@ -266,5 +299,58 @@ public class PAgenesDriver extends AbstractJob {
 		if (!job.waitForCompletion(true)) {
 			throw new InterruptedException("mergeClusters failed");
 		}
+
+		FileSystem fs = FileSystem.get(lastOutput.toUri(), conf);
+		return isConverged(output, lastOutput, conf, fs);
+	}
+
+	/**
+	 * isConverged
+	 * 
+	 * @param currentOutput
+	 * @param lastOutput
+	 * @param conf
+	 * @param fs
+	 * @return
+	 * @throws IOException
+	 */
+	private static boolean isConverged(Path currentOutput, Path lastOutput, Configuration conf, FileSystem fs)
+			throws IOException {
+		if (!fs.exists(lastOutput)) {
+			return false;
+		}
+		long numClustersOfLastOutput = countClustesNum(lastOutput, conf, fs);
+		long numClustersOfCurrentOutput = countClustesNum(currentOutput, conf, fs);
+		if (numClustersOfLastOutput == numClustersOfCurrentOutput) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * countClustesNum
+	 * 
+	 * @param filePath
+	 * @param conf
+	 * @param fs
+	 * @return
+	 * @throws IOException
+	 */
+	private static long countClustesNum(Path filePath, Configuration conf, FileSystem fs) throws IOException {
+		if (!fs.exists(filePath)) {
+			return 0;
+		}
+		long clustesNum = 0;
+		SequenceFileValueIterator<PAgenesCluster> iterator;
+		for (FileStatus part : fs.listStatus(filePath, PathFilters.partFilter())) {
+			iterator = new SequenceFileValueIterator<PAgenesCluster>(part.getPath(), true, conf);
+			while (iterator.hasNext()) {
+				++clustesNum;
+				iterator.next();
+			}
+			iterator.close();
+		}
+		return clustesNum;
 	}
 }
