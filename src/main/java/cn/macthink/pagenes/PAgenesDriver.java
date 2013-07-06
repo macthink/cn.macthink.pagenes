@@ -84,6 +84,8 @@ public class PAgenesDriver extends AbstractJob {
 		addOption(DefaultOptionCreator.thresholdOption().create());
 		addOption(DefaultOptionCreator.maxIterationsOption().create());
 		addOption(DefaultOptionCreator.overwriteOption().create());
+		addOption(new DefaultOptionBuilder().withLongName("showClusterNumbers").withRequired(false).withShortName("sn")
+				.withDescription("If present, show the number of cluster after each iteration.").create());
 		addOption(new DefaultOptionBuilder()
 				.withLongName("processorNum")
 				.withRequired(true)
@@ -108,12 +110,16 @@ public class PAgenesDriver extends AbstractJob {
 		if (hasOption(DefaultOptionCreator.OVERWRITE_OPTION)) {
 			HadoopUtil.delete(getConf(), output);
 		}
+		boolean showClusterNum = false;
+		if (hasOption("showClusterNumbers")) {
+			showClusterNum = true;
+		}
 		int processorNum = Integer.parseInt(getOption("processorNum"));
 		if (getConf() == null) {
 			setConf(new Configuration());
 		}
 
-		run(getConf(), input, output, measure, threshold, maxIterations, processorNum);
+		run(getConf(), input, output, measure, threshold, maxIterations, showClusterNum, processorNum);
 		return 0;
 	}
 
@@ -126,13 +132,15 @@ public class PAgenesDriver extends AbstractJob {
 	 * @param measure
 	 * @param threshold
 	 * @param maxIterations
+	 * @param showClusterNum
 	 * @param processorNum
 	 * @throws ClassNotFoundException
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
 	public static void run(Configuration conf, Path input, Path output, DistanceMeasure measure, double threshold,
-			int maxIterations, int processorNum) throws ClassNotFoundException, IOException, InterruptedException {
+			int maxIterations, boolean showClusterNum, int processorNum) throws ClassNotFoundException, IOException,
+			InterruptedException {
 		if (log.isInfoEnabled()) {
 			log.info("Input: {}", input);
 			log.info("Out: {}", output);
@@ -141,13 +149,16 @@ public class PAgenesDriver extends AbstractJob {
 			log.info("Iterations: {} ", maxIterations);
 			log.info("ProcessNum: {} ", processorNum);
 		}
-		// start counter
-		long start = System.currentTimeMillis();
+		// start counter1
+		long start1 = System.currentTimeMillis();
 
 		// build init cluster
 		log.info("Step1: Build Init Cluster");
 		Path clustersIn = new Path(output, "init-clusters");
 		buildInitCluster(conf, input, clustersIn, measure.getClass().getName());
+
+		// start counter2
+		long start2 = System.currentTimeMillis();
 
 		// start iteration
 		int iteration = 1;
@@ -168,13 +179,17 @@ public class PAgenesDriver extends AbstractJob {
 					processorNum);
 			clustersIn = clustersOut;
 
-			FileSystem fs = FileSystem.get(clustersOut.toUri(), conf);
-			long numClusters = countClustesNum(clustersOut, conf, fs);
-			log.info("Number of clusters: {}", numClusters);
+			if (log.isInfoEnabled() && showClusterNum) {
+				FileSystem fs = FileSystem.get(clustersOut.toUri(), conf);
+				long numClusters = countClustesNum(clustersOut, conf, fs);
+				log.info("Number of clusters: {}", numClusters);
+			}
 		}
 		if (log.isInfoEnabled()) {
-			log.info("Program took {} ms (Minutes: {})", System.currentTimeMillis() - start,
-					(System.currentTimeMillis() - start) / 60000.0);
+			log.info("Program took {} ms (Minutes: {})", System.currentTimeMillis() - start1,
+					(System.currentTimeMillis() - start1) / 60000.0);
+			log.info("Iterations took {} ms (Minutes: {})", System.currentTimeMillis() - start2,
+					(System.currentTimeMillis() - start2) / 60000.0);
 		}
 
 		Path finalClustersIn = new Path(output, "iteration" + (iteration - 1) + "-final");
@@ -300,8 +315,9 @@ public class PAgenesDriver extends AbstractJob {
 			throw new InterruptedException("mergeClusters failed");
 		}
 
-		FileSystem fs = FileSystem.get(lastOutput.toUri(), conf);
-		return isConverged(output, lastOutput, conf, fs);
+		return false;
+		// FileSystem fs = FileSystem.get(lastOutput.toUri(), conf);
+		// return isConverged(output, lastOutput, conf, fs);
 	}
 
 	/**
@@ -314,7 +330,7 @@ public class PAgenesDriver extends AbstractJob {
 	 * @return
 	 * @throws IOException
 	 */
-	private static boolean isConverged(Path currentOutput, Path lastOutput, Configuration conf, FileSystem fs)
+	public static boolean isConverged(Path currentOutput, Path lastOutput, Configuration conf, FileSystem fs)
 			throws IOException {
 		if (!fs.exists(lastOutput)) {
 			return false;
@@ -337,7 +353,7 @@ public class PAgenesDriver extends AbstractJob {
 	 * @return
 	 * @throws IOException
 	 */
-	private static long countClustesNum(Path filePath, Configuration conf, FileSystem fs) throws IOException {
+	public static long countClustesNum(Path filePath, Configuration conf, FileSystem fs) throws IOException {
 		if (!fs.exists(filePath)) {
 			return 0;
 		}

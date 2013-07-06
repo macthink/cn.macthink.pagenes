@@ -70,6 +70,8 @@ public class PartitionPolicy {
 					nonZeroNums++;
 				}
 			}
+			// 统计平均值
+			// TODO
 			// 统计方差
 			variances = StatisticUtils.getVariance(block);
 			// 计算适应度并比较

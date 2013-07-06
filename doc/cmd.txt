@@ -21,7 +21,16 @@ hadoop jar ~/pagenes-0.0.1.jar cn.macthink.pagenes.PAgenesDriver \
 --threshold 0.8 \
 --maxIter 1 \
 --overwrite \
---processorNum 4
+--processorNum 15
+
+hadoop jar ~/pagenes-0.0.1.jar cn.macthink.pagenes.PAgenesDriver \
+--input /tancorp_text_seq_vector/tfidf-vectors \
+--output /tancorp_pagenes_output \
+--distanceMeasure org.apache.mahout.common.distance.CosineDistanceMeasure \
+--threshold 0.8 \
+--maxIter 10 \
+--overwrite \
+--processorNum 15
 
 mahout kmeans \
 --input /tancorp_text_seq_vector/tfidf-vectors \
