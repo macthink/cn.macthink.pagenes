@@ -58,11 +58,13 @@ public class PartitionPolicy {
 		// 统计各块的非零元素和方差
 		int nonZeroNums = 0;
 		double variances = 0;
+		double average = 0;
 		int partitionNum = 1; // 将被划分到的分区编号
 		double fitness = 0.0d;
 		double maxFitness = 0.0d; // 最大适应度
 		for (int i = 0; i < blocks.length; i++) {
 			double[] block = blocks[i];
+
 			// 统计非零元素
 			nonZeroNums = 0;
 			for (int j = 0; j < block.length; j++) {
@@ -70,12 +72,15 @@ public class PartitionPolicy {
 					nonZeroNums++;
 				}
 			}
+
 			// 统计平均值
-			// TODO
+			average = StatisticUtils.getAverage(block);
+
 			// 统计方差
 			variances = StatisticUtils.getVariance(block);
+
 			// 计算适应度并比较
-			fitness = nonZeroNums / variances;
+			fitness = (nonZeroNums + average) / variances;
 			if (fitness > maxFitness) {
 				maxFitness = fitness;
 				partitionNum = i + 1;
